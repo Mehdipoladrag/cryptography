@@ -12,3 +12,31 @@ class CryptoManager:
         self.symmetric_key = None
         self.private_key = None
         self.public_key = None
+    def generate_symmetric_key_from_password(self, password: str, salt: bytes):
+        kdf = PBKDF2HMAC(
+            algorithm=hashes.SHA256(),
+            length=32,
+            salt=salt,
+            iterations=100000,
+            backend=default_backend()
+        )
+        self.symmetric_key = kdf.derive(password.encode())
+
+    def encrypt_symmetric(self, plaintext):
+        if self.symmetric_key is None:
+            raise ValueError("Symmetric key is not set")
+        
+        cipher = Cipher(algorithms.AES(self.symmetric_key), modes.CFB8(self.symmetric_key[:16]), backend=default_backend())
+        encryptor = cipher.encryptor()
+        ciphertext = encryptor.update(plaintext.encode()) + encryptor.finalize()
+        return base64.b64encode(ciphertext).decode()
+
+    def decrypt_symmetric(self, ciphertext):
+        if self.symmetric_key is None:
+            raise ValueError("Symmetric key is not set")
+        
+        ciphertext = base64.b64decode(ciphertext)
+        cipher = Cipher(algorithms.AES(self.symmetric_key), modes.CFB8(self.symmetric_key[:16]), backend=default_backend())
+        decryptor = cipher.decryptor()
+        plaintext = decryptor.update(ciphertext) + decryptor.finalize()
+        return plaintext.decode()
