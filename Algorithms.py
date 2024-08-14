@@ -40,3 +40,39 @@ class CryptoManager:
         decryptor = cipher.decryptor()
         plaintext = decryptor.update(ciphertext) + decryptor.finalize()
         return plaintext.decode()
+    def generate_asymmetric_keys(self):
+        self.private_key = rsa.generate_private_key(
+            public_exponent=65537,
+            key_size=2048,
+            backend=default_backend()
+        )
+        self.public_key = self.private_key.public_key()
+
+    def encrypt_asymmetric(self, plaintext):
+        if self.public_key is None:
+            raise ValueError("Public key is not set")
+        
+        ciphertext = self.public_key.encrypt(
+            plaintext.encode(),
+            padding.OAEP(
+                mgf=padding.MGF1(algorithm=hashes.SHA256()),
+                algorithm=hashes.SHA256(),
+                label=None
+            )
+        )
+        return base64.b64encode(ciphertext).decode()
+
+    def decrypt_asymmetric(self, ciphertext):
+        if self.private_key is None:
+            raise ValueError("Private key is not set")
+        
+        ciphertext = base64.b64decode(ciphertext)
+        plaintext = self.private_key.decrypt(
+            ciphertext,
+            padding.OAEP(
+                mgf=padding.MGF1(algorithm=hashes.SHA256()),
+                algorithm=hashes.SHA256(),
+                label=None
+            )
+        )
+        return plaintext.decode()
