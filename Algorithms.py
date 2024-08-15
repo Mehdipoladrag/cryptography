@@ -76,3 +76,47 @@ class CryptoManager:
             )
         )
         return plaintext.decode()
+    def save_asymmetric_keys(self, private_key_path, public_key_path):
+        if self.private_key is None or self.public_key is None:
+            raise ValueError("Asymmetric keys are not set")
+        
+        try:
+            pem = self.private_key.private_bytes(
+                encoding=serialization.Encoding.PEM,
+                format=serialization.PrivateFormat.TraditionalOpenSSL,
+                encryption_algorithm=serialization.NoEncryption()
+            )
+            with open(private_key_path, 'wb') as f:
+                f.write(pem)
+            
+            pem = self.public_key.public_bytes(
+                encoding=serialization.Encoding.PEM,
+                format=serialization.PublicFormat.SubjectPublicKeyInfo
+            )
+            with open(public_key_path, 'wb') as f:
+                f.write(pem)
+            
+            print(f"Keys saved successfully to {private_key_path} and {public_key_path}")
+        except Exception as e:
+            print(f"Error saving keys: {e}")
+
+    def load_asymmetric_keys(self, private_key_path, public_key_path):
+        try:
+            with open(private_key_path, 'rb') as f:
+                private_key = serialization.load_pem_private_key(
+                    f.read(),
+                    password=None,
+                    backend=default_backend()
+                )
+            self.private_key = private_key
+
+            with open(public_key_path, 'rb') as f:
+                public_key = serialization.load_pem_public_key(
+                    f.read(),
+                    backend=default_backend()
+                )
+            self.public_key = public_key
+
+            print(f"Keys loaded successfully from {private_key_path} and {public_key_path}")
+        except Exception as e:
+            print(f"Error loading keys: {e}")
