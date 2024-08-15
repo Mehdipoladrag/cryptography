@@ -120,3 +120,30 @@ class CryptoManager:
             print(f"Keys loaded successfully from {private_key_path} and {public_key_path}")
         except Exception as e:
             print(f"Error loading keys: {e}")
+
+
+if __name__ == "__main__":
+    manager = CryptoManager()
+    
+
+    password = input("Enter your password for symmetric encryption: ")
+    salt = os.urandom(16)  
+
+    manager.generate_symmetric_key_from_password(password, salt)
+    symmetric_message = input("Enter a message to encrypt with symmetric encryption: ")
+    encrypted_message_symmetric = manager.encrypt_symmetric(symmetric_message)
+    print(f"Encrypted symmetric message: {encrypted_message_symmetric}")
+    decrypted_message_symmetric = manager.decrypt_symmetric(encrypted_message_symmetric)
+    print(f"Symmetric Decryption: {decrypted_message_symmetric}")
+
+
+    manager.generate_asymmetric_keys()
+    asymmetric_message = input("Enter a message to encrypt with asymmetric encryption: ")
+    encrypted_message_asymmetric = manager.encrypt_asymmetric(asymmetric_message)
+    print(f"Encrypted asymmetric message: {encrypted_message_asymmetric}")
+    decrypted_message_asymmetric = manager.decrypt_asymmetric(encrypted_message_asymmetric)
+    print(f"Asymmetric Decryption: {decrypted_message_asymmetric}")
+
+
+    manager.save_asymmetric_keys('private_key.pem', 'public_key.pem')
+    manager.load_asymmetric_keys('private_key.pem', 'public_key.pem')
